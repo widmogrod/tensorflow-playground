@@ -62,7 +62,7 @@ def main(_):
   # outputs of 'y', and then average across the batch.
   cross_entropy = tf.reduce_mean(
       tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-  train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+  train_step = tf.train.GradientDescentOptimizer(0.7).minimize(cross_entropy)
 
   sess = tf.InteractiveSession()
   tf.global_variables_initializer().run()
@@ -84,14 +84,17 @@ def main(_):
   images_test_prepared = list(map(img_to_r, images_test))
 
   def take_batch(list, offset, size):
+      count = len(list) - size
       index = offset * size
+      index = min(index, count)
+      index = max(index, index - size)
       return list[index:index+size]
 
   # Train
   for i in range(1000):
     # batch_xs, batch_ys = mnist.train.next_batch(100)
-    batch_xs = take_batch(images_train_prepared, i, 50)
-    batch_ys = take_batch(labels_train, i, 50)
+    batch_xs = take_batch(images_train_prepared, i, 300)
+    batch_ys = take_batch(labels_train, i, 300)
     # [[0..783]...[]]
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
