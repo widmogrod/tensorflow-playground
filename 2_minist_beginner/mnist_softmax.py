@@ -40,7 +40,7 @@ def main(_):
 
   img_size_x = 32
   img_size_y = 32
-  img_vec = img_size_x * img_size_y
+  img_vec = img_size_x * img_size_y * 3
 
   # Create the model
   x = tf.placeholder(tf.float32, [None, img_vec])
@@ -72,7 +72,8 @@ def main(_):
       result = []
       for x in range(32):
           for y in range(32):
-              result.append(img[x][y][1])
+              for c in range(3):
+                result.append(img[x][y][c])
 
       return result
 
