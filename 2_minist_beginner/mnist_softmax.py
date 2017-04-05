@@ -59,7 +59,7 @@ def take_batch(list, offset, size):
 def save_in_file(file_name, data):
   with open(file_name,'a') as f:
     writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-    writer.writerows([[data]])
+    writer.writerows([[data]][0])
 
 
 def main(_):
@@ -118,6 +118,7 @@ def main(_):
           save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(single_range),str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test}))])
         except Exception as e:
           save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(single_range), str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test})), str(e)])
+        sess.close()
   # print(sess.run(accuracy, feed_dict={x: mnist.test.images,
   #                                     y_: mnist.test.labels}))
 
