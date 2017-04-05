@@ -36,6 +36,7 @@ FLAGS = None
 
 learning_rates = [0.1, 0.2, 0.3, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 batch_sizes = [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000]
+range_array = [500, 1000, 5000, 10000]
 
 def img_to_r(img):
     result = []
@@ -56,9 +57,9 @@ def take_batch(list, offset, size):
     return list[index:index+size]
 
 def save_in_file(file_name, data):
-  with open(file_name,'wb') as f:
-    writer = csv.writer(f, delimiter =',', quoting=csv.QUOTE_MINIMAL)
-    writer.writerows(data)
+  with open(file_name,'a') as f:
+    writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+    writer.writerows([[data]])
 
 
 def main(_):
@@ -89,33 +90,34 @@ def main(_):
   #
   # So here we use tf.nn.softmax_cross_entropy_with_logits on the raw
   # outputs of 'y', and then average across the batch.
-  for learning_rate in learning_rates:
-    for batch_size in batch_sizes: 
-      try:     
-        cross_entropy = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-        train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+  for single_range in range_array:
+    for learning_rate in learning_rates:
+      for batch_size in batch_sizes: 
+        try:     
+          cross_entropy = tf.reduce_mean(
+              tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
+          train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
 
-        sess = tf.InteractiveSession()
-        tf.global_variables_initializer().run()
+          sess = tf.InteractiveSession()
+          tf.global_variables_initializer().run()
 
 
-        # Train
-        for i in range(1000):
-          # batch_xs, batch_ys = mnist.train.next_batch(100)
-          batch_xs = take_batch(images_train_prepared, i, batch_size)
-          batch_ys = take_batch(labels_train, i, batch_size)
-          # [[0..783]...[]]
-          sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+          # Train
+          for i in range(single_range):
+            # batch_xs, batch_ys = mnist.train.next_batch(100)
+            batch_xs = take_batch(images_train_prepared, i, batch_size)
+            batch_ys = take_batch(labels_train, i, batch_size)
+            # [[0..783]...[]]
+            sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
-        # Test trained model
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        #print(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test}))
+          # Test trained model
+          correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+          accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+          #print(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test}))
 
-        save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test}))])
-      except Exception as e:
-        save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test})), str(e)])
+          save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(single_range),str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test}))])
+        except Exception as e:
+          save_in_file("results.csv", [str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), str(single_range), str(learning_rate), str(batch_size), str(sess.run(accuracy, feed_dict={x: images_test_prepared, y_: labels_test})), str(e)])
   # print(sess.run(accuracy, feed_dict={x: mnist.test.images,
   #                                     y_: mnist.test.labels}))
 
